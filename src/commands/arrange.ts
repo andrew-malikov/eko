@@ -1,4 +1,7 @@
-import { listActiveContainers } from "../docker/docker-wrapper";
+import {
+  listActiveContainers,
+  listenContainerLogs,
+} from "../docker/docker-wrapper";
 import { EmptyResult, Failure } from "../result/result";
 import { StorageLayerType } from "../storage/storage";
 
@@ -19,6 +22,19 @@ export async function arrangeContainersLogs({
 
   console.log("Found containers by filter", containerFilter);
   console.table(containers);
+
+  if (containers.length === 0) {
+    return EmptyResult.ofOk();
+  }
+
+  const container = containers[0];
+  const containerLogsResult = listenContainerLogs(container.id);
+  if (containerLogsResult instanceof Failure) {
+    return containerLogsResult.asEmpty();
+  }
+
+  console.log("Reading container", container.id, "logs");
+  containerLogsResult.asOk().pipe(process.stdout);
 
   return EmptyResult.ofFailure("Not Implemented");
 }

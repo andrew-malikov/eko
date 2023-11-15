@@ -1,6 +1,8 @@
 import { exec } from "child_process";
 
 import { Result } from "../result/result";
+import { Option } from "../result/option";
+import { Stream } from "stream";
 
 export type Container = {
   name: string;
@@ -58,4 +60,17 @@ export function listActiveContainers(
       }
     );
   });
+}
+
+export function listenContainerLogs(
+  containerId: string,
+  timestamp: Option<number> = null
+): Result<Stream> {
+  const containerLogs = exec(`docker logs ${containerId} -t --follow`);
+
+  if (!containerLogs.stdout) {
+    return Result.ofFailure("Failed to acquire logs' stream");
+  }
+
+  return Result.ofOk(containerLogs.stdout);
 }
