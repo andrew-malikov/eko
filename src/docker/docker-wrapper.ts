@@ -11,13 +11,15 @@ export type Container = {
 /**
  * @param filter a docker container ls filter
  */
-export function listContainers(filter: string): Promise<Result<Container[]>> {
-  return new Promise<Result<Container[]>>((resolve, reject) => {
+export function listActiveContainers(
+  filter: string
+): Promise<Result<Container[]>> {
+  return new Promise<Result<Container[]>>((resolve, _) => {
     exec(
-      `docker container ls -a --format json -f ${filter}`,
+      `docker container ls --format json -f ${filter}`,
       (error, stdout, _) => {
         if (error) {
-          return Promise.resolve(
+          return resolve(
             Result.ofFailure(
               `Failed to gather containers from docker deamon with fitler ${filter}.`,
               error
@@ -26,17 +28,17 @@ export function listContainers(filter: string): Promise<Result<Container[]>> {
         }
 
         const jsonRows = stdout.split("\n");
-
         try {
           const containers = jsonRows
+            .filter((container) => container.trim().length != 0)
             .map((container) => JSON.parse(container))
             .map((container: { [key: string]: unknown }) => {
-              const id = container["id"];
+              const id = container["ID"];
               if (typeof id != "string") {
                 throw new Error(`Invalid container id ${id}`);
               }
 
-              const name = container["name"];
+              const name = container["Names"];
               if (typeof name != "string") {
                 throw new Error(`Invalid container name ${name}`);
               }
@@ -44,11 +46,13 @@ export function listContainers(filter: string): Promise<Result<Container[]>> {
               return { id, name };
             });
 
-          return Result.ofOk(containers);
+          resolve(Result.ofOk(containers));
         } catch (error) {
-          return Result.ofFailure(
-            `Failed to parse container list from docker deamon. ${stdout}`,
-            error
+          resolve(
+            Result.ofFailure(
+              `Failed to parse container list from docker deamon. ${stdout}`,
+              error
+            )
           );
         }
       }

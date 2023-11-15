@@ -13,3 +13,7 @@
 ## Run
 
 ## Example
+
+```sh
+docker compose -p eko -f example/docker-compose.yaml up --force-recreate --always-recreate-deps --build
+```

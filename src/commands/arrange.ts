@@ -1,4 +1,4 @@
-import { listContainers } from "../docker/docker-wrapper";
+import { listActiveContainers } from "../docker/docker-wrapper";
 import { EmptyResult, Failure } from "../result/result";
 import { StorageLayerType } from "../storage/storage";
 
@@ -10,12 +10,15 @@ export type ArrangeContainersLogsRequest = {
 export async function arrangeContainersLogs({
   containerFilter,
 }: ArrangeContainersLogsRequest): Promise<EmptyResult> {
-  const containersResult = await listContainers(containerFilter);
+  const containersResult = await listActiveContainers(containerFilter);
   if (containersResult instanceof Failure) {
-    return containersResult;
+    return containersResult.asEmpty();
   }
 
-  console.table(containersResult.asOk());
+  const containers = containersResult.asOk();
+
+  console.log("Found containers by filter", containerFilter);
+  console.table(containers);
 
   return EmptyResult.ofFailure("Not Implemented");
 }

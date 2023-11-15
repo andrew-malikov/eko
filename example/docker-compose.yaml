@@ -1,0 +1,12 @@
+services:
+  lorem-ipsum-service:
+    build:
+      context: ./lorem-ipsum-container
+      dockerfile: ./Dockerfile
+    image: lorem-ipsum
+
+  hidden-lorem-ipsum-service:
+    build:
+      context: ./lorem-ipsum-container
+      dockerfile: ./Dockerfile
+    image: lorem-ipsum

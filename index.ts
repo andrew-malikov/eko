@@ -2,6 +2,7 @@ import { Command } from "commander";
 
 import { SUPPORTED_STORAGES } from "./src/storage-layers/supported-storages";
 import { arrangeContainersLogs } from "./src/commands/arrange";
+import { Failure } from "./src/result/result";
 
 const cli = new Command();
 
@@ -24,13 +25,21 @@ cli
   .description(
     "listens to a set of containers by tags and stores logs into a storage"
   )
-  .option("-s", "storage layer", "fs::")
+  .option("-s, --s", "storage layer", "fs::")
   .argument(
-    "<string>",
+    "<filter>",
     "container filter like in `docker container ls -f label=xyz`"
   )
-  .action((filter, _) => {
-    arrangeContainersLogs({ containerFilter: filter, storage: {} as any });
+  .action(async (filter, _) => {
+    const arrangeResult = await arrangeContainersLogs({
+      containerFilter: filter,
+      storage: {} as any,
+    });
+
+    if (arrangeResult instanceof Failure) {
+      console.error(arrangeResult.message, arrangeResult.error);
+      process.exit(1);
+    }
   });
 
 cli.parse();
