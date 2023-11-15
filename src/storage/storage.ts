@@ -3,16 +3,16 @@ import { Stream } from "stream";
 import { Option } from "../result/option";
 import { EmptyResult, Result } from "../result/result";
 
-export type StorageLayerType = {
+export type StorageConfig = {
   name: string;
   config: string | unknown;
 };
 
 export const CONNECTION_STRING_EXPRESSION = "([a-zA-Z]+::.*)";
 
-export function ParseStorageLayerType(
+export function parseStorageLayerType(
   connectionString: string
-): Result<StorageLayerType> {
+): Result<StorageConfig> {
   const storageLayerType = connectionString.match(CONNECTION_STRING_EXPRESSION);
 
   if (!storageLayerType) {
@@ -26,7 +26,8 @@ export function ParseStorageLayerType(
   return Result.ofOk({ name, config });
 }
 
-export interface StorageLayer {
-  saveLogs(logs: Stream): Promise<EmptyResult>;
+export interface Storage {
+  saveLogs(containerId: string, logs: Stream): Promise<EmptyResult>;
   readLogs(containerId: string): Promise<Result<Option<Stream>>>;
+  getLatestLogTimestamp(containerId: string): Promise<Result<Option<number>>>;
 }

@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { SUPPORTED_STORAGES } from "./src/storage-layers/supported-storages";
 import { arrangeContainersLogs } from "./src/commands/arrange";
 import { Failure } from "./src/result/result";
+import { parseStorageLayerType } from "./src/storage/storage";
 
 const cli = new Command();
 
@@ -25,15 +26,29 @@ cli
   .description(
     "listens to a set of containers by tags and stores logs into a storage"
   )
-  .option("-s, --s", "storage layer", "fs::")
+  .option("-s, --s", "storage layer", "fs::./logs")
   .argument(
     "<filter>",
     "container filter like in `docker container ls -f label=xyz`"
   )
-  .action(async (filter, _) => {
+  .action(async (filter, options) => {
+    const storageConfigOption = options["s"];
+    if (!storageConfigOption) {
+      console.error(
+        "No -s option is specified or default one is overriden to nothing"
+      );
+      process.exit(1);
+    }
+
+    const storageConfigResult = parseStorageLayerType(storageConfigOption);
+    if (storageConfigResult instanceof Failure) {
+      console.error(storageConfigResult.message, storageConfigResult.error);
+      process.exit(1);
+    }
+
     const arrangeResult = await arrangeContainersLogs({
       containerFilter: filter,
-      storage: {} as any,
+      storageConfig: storageConfigResult.asOk(),
     });
 
     if (arrangeResult instanceof Failure) {
