@@ -27,14 +27,15 @@ export async function arrangeContainersLogs({
     return EmptyResult.ofOk();
   }
 
-  const container = containers[0];
-  const containerLogsResult = listenContainerLogs(container.id);
-  if (containerLogsResult instanceof Failure) {
-    return containerLogsResult.asEmpty();
-  }
+  for (const container of containers) {
+    const containerLogsResult = listenContainerLogs(container.id);
+    if (containerLogsResult instanceof Failure) {
+      return containerLogsResult.asEmpty();
+    }
 
-  console.log("Reading container", container.id, "logs");
-  containerLogsResult.asOk().pipe(process.stdout);
+    console.log("Reading container", container.id, "logs");
+    containerLogsResult.asOk().pipe(process.stdout);
+  }
 
   return EmptyResult.ofFailure("Not Implemented");
 }
