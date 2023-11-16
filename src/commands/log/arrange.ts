@@ -1,6 +1,7 @@
-import { Stream } from "stream";
+import { Readable } from "stream";
 
 import {
+  isDockerPresent,
   listActiveContainers,
   listenContainerLogs,
 } from "../../docker/docker-wrapper";
@@ -13,13 +14,20 @@ export type ArrangeContainersLogsRequest = {
 };
 
 type SubscribedContainer = {
-  logs: Stream;
+  logs: Readable;
 };
 
 export async function arrangeContainersLogs(
   getStorage: GetStorage,
   { containerFilter, storageDefinition }: ArrangeContainersLogsRequest
 ): Promise<EmptyResult> {
+  const isDockerHealthy = await isDockerPresent();
+  if (!isDockerHealthy) {
+    return EmptyResult.ofFailure(
+      "Docker is not present at the moment. Please get another one."
+    );
+  }
+
   const storageResult = await getStorage(storageDefinition);
   if (storageResult instanceof Failure) {
     return storageResult.asEmpty();
@@ -33,10 +41,13 @@ export async function arrangeContainersLogs(
     );
   }
 
-  const subscribedContainer: Map<string, SubscribedContainer> = new Map();
-  subscribeToContainers(storage, containerFilter, subscribedContainer);
+  const subscribedContainers: Map<string, SubscribedContainer> = new Map();
+  process.on("SIGTERM", () => gracefullyShutdown(subscribedContainers));
+  process.on("SIGINT", () => gracefullyShutdown(subscribedContainers));
+
+  subscribeToContainers(storage, containerFilter, subscribedContainers);
   setInterval(
-    () => subscribeToContainers(storage, containerFilter, subscribedContainer),
+    () => subscribeToContainers(storage, containerFilter, subscribedContainers),
     5000
   );
 
@@ -118,4 +129,18 @@ async function subscribeToContainers(
   }
 
   return EmptyResult.ofOk();
+}
+
+function gracefullyShutdown(
+  subscribedContainers: Map<string, SubscribedContainer>
+) {
+  subscribedContainers.forEach((container, containerId) => {
+    container.logs.destroy();
+    console.log(
+      "Container",
+      containerId,
+      "has been successfully unsubscribed."
+    );
+  });
+  process.exit(0);
 }

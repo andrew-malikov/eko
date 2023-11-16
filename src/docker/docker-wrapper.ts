@@ -2,7 +2,7 @@ import { exec } from "child_process";
 
 import { Result } from "../result/result";
 import { Option } from "../result/option";
-import { Stream } from "stream";
+import { Readable, Stream } from "stream";
 
 export type Container = {
   name: string;
@@ -65,7 +65,7 @@ export function listActiveContainers(
 export function listenContainerLogs(
   containerId: string,
   timestamp: Option<number> = null
-): Result<Stream> {
+): Result<Readable> {
   let logCommand = `docker logs ${containerId} -t --follow`;
   if (timestamp) {
     logCommand += ` --since ${timestamp}`;
@@ -78,4 +78,12 @@ export function listenContainerLogs(
   }
 
   return Result.ofOk(containerLogs.stdout);
+}
+
+export async function isDockerPresent(): Promise<boolean> {
+  return new Promise<boolean>((resolve, _) => {
+    exec("docker", (error, _, __) => {
+      error ? resolve(false) : resolve(true);
+    });
+  });
 }
