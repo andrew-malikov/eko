@@ -9,9 +9,7 @@
     "start": "pnpm clean && pnpm build && node ./build"
   },
   "dependencies": {
-    "commander": "^11.1.0",
-    "uuid": "^9.0.1",
-    "zod": "^3.22.4"
+    "commander": "^11.1.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",

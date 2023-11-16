@@ -3,6 +3,7 @@
 # Logs
 
 /logs
+/my-logs
 _.log
 npm-debug.log_
 yarn-debug.log*
