@@ -62,6 +62,8 @@ Run that docker compose to have a set of container to arrange logs from.
 docker compose -p eko -f example/docker-compose.yaml up --force-recreate --always-recreate-deps --build
 ```
 
+and then run eko
+
 ```sh
 pnpm start arrange "name=lorem"
 ```

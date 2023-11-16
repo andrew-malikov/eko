@@ -1,25 +1,31 @@
-import { getFsStorage } from "../storage-layers/fs-storage";
 import {
   listActiveContainers,
   listenContainerLogs,
 } from "../docker/docker-wrapper";
-import { EmptyResult, Failure } from "../result/result";
-import { StorageConfig } from "../storage/storage";
+import { EmptyResult, Failure, Result } from "../result/result";
+import { GetStorage, StorageDefinition } from "../storage/storage";
 
 export type ArrangeContainersLogsRequest = {
   containerFilter: string;
-  storageConfig: StorageConfig;
+  storageDefinition: StorageDefinition;
 };
 
-export async function arrangeContainersLogs({
-  containerFilter,
-  storageConfig,
-}: ArrangeContainersLogsRequest): Promise<EmptyResult> {
-  const storageResult = await getFsStorage(storageConfig.config as string);
+export async function arrangeContainersLogs(
+  getStorage: GetStorage,
+  { containerFilter, storageDefinition }: ArrangeContainersLogsRequest
+): Promise<EmptyResult> {
+  const storageResult = await getStorage(storageDefinition);
   if (storageResult instanceof Failure) {
     return storageResult.asEmpty();
   }
   const storage = storageResult.asOk();
+
+  if (!(await storage.isHealthy())) {
+    const storageMetadata = storage.getStorageMetadata();
+    return EmptyResult.ofFailure(
+      `The storage ${storageMetadata.toString()} is unhealthy.`
+    );
+  }
 
   const containersResult = await listActiveContainers(containerFilter);
   if (containersResult instanceof Failure) {
@@ -42,16 +48,17 @@ export async function arrangeContainersLogs({
     }
     const containerLogs = containerLogsResult.asOk();
 
-    const saveResult = await storage.saveLogs(container.id, containerLogs);
-    if (saveResult instanceof Failure) {
-      console.error(
-        "Failed to start saving logs of container",
-        container.id,
-        saveResult.message,
-        saveResult.error
-      );
-    }
+    storage.saveLogs(container.id, containerLogs).then((saveResult) => {
+      if (saveResult instanceof Failure) {
+        console.error(
+          "Failed to start saving logs of container",
+          container.id,
+          saveResult.message,
+          saveResult.error
+        );
+      }
+    });
   }
 
-  return EmptyResult.ofFailure("Not Implemented");
+  return EmptyResult.ofOk();
 }
