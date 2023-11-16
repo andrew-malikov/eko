@@ -112,7 +112,7 @@ A: Right now nope, but it is easy to implement, coz docker accepts -H option wit
 
 Q: Does this logging service observers container while running or only one time at the startup?
 
-A: It does observer each X amount of seconds. But it's not configurable now.
+A: It does observe each X amount of seconds. But it's not configurable now.
 
 ---
 
