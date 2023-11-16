@@ -6,6 +6,7 @@ import { Option } from "../../result/option";
 import { EmptyResult, Result } from "../../result/result";
 import { Storage, StorageMetadata } from "../storage";
 import { createReadStream, createWriteStream } from "fs";
+import { exec } from "child_process";
 
 export class FsStorage implements Storage {
   constructor(private baseDirectory: string) {}
@@ -44,7 +45,7 @@ export class FsStorage implements Storage {
       await mkdir(containerDirectory, { recursive: true });
       const containerLogFile = path.join(containerDirectory, "log");
 
-      const writeStream = createWriteStream(containerLogFile);
+      const writeStream = createWriteStream(containerLogFile, { flags: "a" });
       logs.pipe(writeStream);
 
       return new Promise((resolve, reject) => {
@@ -84,8 +85,35 @@ export class FsStorage implements Storage {
     }
   }
 
-  getLatestLogTimestamp(containerId: string): Promise<Result<Option<number>>> {
-    throw new Error("Method not implemented.");
+  async getLatestLogTimestamp(
+    containerId: string
+  ): Promise<Result<Option<number>>> {
+    const containerLogFile = path.join(this.baseDirectory, containerId, "log");
+    try {
+      await access(containerLogFile);
+    } catch {
+      return Result.ofOk(null);
+    }
+
+    return new Promise((resolve, reject) => {
+      exec(`tail -n 1 ${containerLogFile}`, (error, stdout, stderr) => {
+        if (!error) {
+          resolve(Result.ofFailure("Failed to read last log.", error));
+        }
+
+        const logSegments = stdout.split(" ");
+        if (logSegments.length < 2) {
+          resolve(Result.ofOk(null));
+        }
+
+        try {
+          const unixTimestamp = Date.parse(logSegments[0]);
+          resolve(Result.ofOk(unixTimestamp));
+        } catch {
+          resolve(Result.ofOk(null));
+        }
+      });
+    });
   }
 }
 
