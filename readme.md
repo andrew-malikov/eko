@@ -6,17 +6,15 @@
     - [Storage layers](#storage-layers)
     - [Show up logs](#show-up-logs)
   - [Develop](#develop)
-    - [PNPM](#pnpm)
     - [Docker](#docker)
   - [Run](#run)
+  - [Binary](#binary)
   - [Example](#example)
   - [Questions](#questions)
 
 Eko is an example service to arrange containers' logs. Nothing new and nothing fancy, go ahead.
 
 ## Overview
-
-> While there is no binary right now, features are still written like it actually present.
 
 ### Arrange logs
 
@@ -58,38 +56,42 @@ eko log show <container-id>
 
 ## Develop
 
-### PNPM
-
-While it is quite possible to use npm to run this project, pnpm is strongly encouraged, even if you don't have one.
-
-```sh
-npm install -g pnpm
-```
-
 ### Docker
 
-> You need to have docker one way or the other.
+> You need to have docker one way or the other, either on local or remotely on a machine with open port to access docker socket.
 
 ## Run
 
 Build the project:
 
 ```sh
-pnpm build 
+npm run build 
 ```
 
 and then run:
 
 ```sh
-pnpm start
+npm run start
 ```
 
+## Binary
+
+You can build a binary:
+
+```sh
+npm run binary
+```
+
+You can find the artifact `./binary/eko`.
+
 ## Example
+
+> You can either use npm to build and run eko or have binary instead.
 
 Build eko:
 
 ```sh
-pnpm build
+npm run build
 ```
 
 Run that docker compose to have a set of container to arrange logs from:
@@ -101,7 +103,7 @@ docker compose -p eko -f example/docker-compose.yaml up --force-recreate --alway
 and then run eko:
 
 ```sh
-pnpm start log arrange "name=lorem"
+npm run start log arrange "name=lorem"
 ```
 
 See the logs in the `./logs` folder.
@@ -109,13 +111,13 @@ See the logs in the `./logs` folder.
 Additionally, you can show up the logs via eko. Firstly, you need to get the container id you want to show up via
 
 ```sh
-pnpm start log list
+npm run start log list
 ```
 
 and finally, bring the logs:
 
 ```sh
-pnpm start log show <container-id>
+npm run start log show <container-id>
 ```
 
 ## Questions
@@ -126,6 +128,6 @@ A: It does observe each X amount of seconds. But it's not configurable now.
 
 ---
 
-Q: Can I ran multiple such logging services that listen the same containers with the same storages?
+Q: Can I run multiple such logging services that listen the same containers with the same storage?
 
 A: Nope, right now it would probably fail. At least with the FS storage, some of the services would fail to write to the same file.

@@ -174,3 +174,9 @@ dist
 
 # Compiled JS
 build
+
+# Bundled JS
+/bundle
+
+# Binary eko
+/binary

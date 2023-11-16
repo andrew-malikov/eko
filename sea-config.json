@@ -1,0 +1,4 @@
+{
+    "main": "bundle/index.js",
+    "output": "binary/sea-prep.blob"
+}
