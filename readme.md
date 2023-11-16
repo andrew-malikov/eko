@@ -7,6 +7,7 @@
     - [Show up logs](#show-up-logs)
   - [Develop](#develop)
     - [PNPM](#pnpm)
+    - [Docker](#docker)
   - [Run](#run)
   - [Example](#example)
     - [Logging Container](#logging-container)
@@ -56,6 +57,10 @@ While it is quite possible to use npm to run this project, pnpm is strongly enco
 ```sh
 npm install -g pnpm
 ```
+
+### Docker
+
+> You need to have docker one way or the other.
 
 ## Run
 
