@@ -47,6 +47,11 @@ logsCli
       process.exit(1);
     }
 
+    if (typeof storageConfigOption != "string") {
+      console.error("Storage layer options -s must be a string");
+      process.exit(1);
+    }
+
     const storageConfigResult = parseStorageDefinition(storageConfigOption);
     if (storageConfigResult instanceof Failure) {
       console.error(storageConfigResult.message, storageConfigResult.error);
@@ -77,6 +82,11 @@ logsCli
       process.exit(1);
     }
 
+    if (typeof storageConfigOption != "string") {
+      console.error("Storage layer options -s must be a string");
+      process.exit(1);
+    }
+
     const storageConfigResult = parseStorageDefinition(storageConfigOption);
     if (storageConfigResult instanceof Failure) {
       console.error(storageConfigResult.message, storageConfigResult.error);
@@ -104,6 +114,11 @@ logsCli
       console.error(
         "No -s option is specified or default one is overriden to nothing"
       );
+      process.exit(1);
+    }
+
+    if (typeof storageConfigOption != "string") {
+      console.error("Storage layer options -s must be a string");
       process.exit(1);
     }
 
