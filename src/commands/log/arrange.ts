@@ -41,8 +41,17 @@ export async function arrangeContainersLogs(
   }
 
   for (const container of containers) {
+    const latestLogsTimestampResult =
+      await storage.getLatestLogTimestamp(container.id);
+    if (latestLogsTimestampResult instanceof Failure) {
+      return latestLogsTimestampResult.asEmpty();
+    }
+
     console.log("Reading container", container.id, "logs");
-    const containerLogsResult = listenContainerLogs(container.id);
+    const containerLogsResult = listenContainerLogs(
+      container.id,
+      latestLogsTimestampResult.asOk()
+    );
     if (containerLogsResult instanceof Failure) {
       return containerLogsResult.asEmpty();
     }

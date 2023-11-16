@@ -97,7 +97,7 @@ export class FsStorage implements Storage {
 
     return new Promise((resolve, reject) => {
       exec(`tail -n 1 ${containerLogFile}`, (error, stdout, stderr) => {
-        if (!error) {
+        if (error) {
           resolve(Result.ofFailure("Failed to read last log.", error));
         }
 
