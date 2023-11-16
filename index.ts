@@ -9,6 +9,7 @@ import { Failure } from "./src/result/result";
 import { parseStorageDefinition } from "./src/storage/storage";
 import { showContainerLogs } from "./src/commands/log/show";
 import { listContainers } from "./src/commands/log/list";
+import { getDockerWrapper } from "./src/docker/docker-wrapper";
 
 const cli = new Command();
 
@@ -34,6 +35,11 @@ logsCli
     "listens to a filtered set of containers and stores logs into a storage"
   )
   .option("-s, --s <storage>", "storage layer", "fs::./logs")
+  .option(
+    "-d, --d <docker>",
+    "docker connection string like 'local::/var/run/docker.sock' or 'remote::214.12.124.12:3000'",
+    "local::/var/run/docker.sock"
+  )
   .argument(
     "<filter>",
     "container filter like in `docker container ls -f label=xyz`"
@@ -58,10 +64,33 @@ logsCli
       process.exit(1);
     }
 
-    const arrangeResult = await arrangeContainersLogs(getStorage, {
-      containerFilter: filter,
-      storageDefinition: storageConfigResult.asOk(),
-    });
+    const dockerConfigOption = options["d"];
+    if (!dockerConfigOption) {
+      console.error(
+        "No -d option is specified or default one is override to nothing"
+      );
+      process.exit(1);
+    }
+
+    if (typeof dockerConfigOption != "string") {
+      console.error("Docker connection options -d must be a string");
+      process.exit(1);
+    }
+
+    const dockerResult = getDockerWrapper(dockerConfigOption);
+    if (dockerResult instanceof Failure) {
+      console.error(dockerResult.message, dockerResult.error);
+      process.exit(1);
+    }
+
+    const arrangeResult = await arrangeContainersLogs(
+      getStorage,
+      dockerResult.asOk(),
+      {
+        containerFilter: filter,
+        storageDefinition: storageConfigResult.asOk(),
+      }
+    );
 
     if (arrangeResult instanceof Failure) {
       console.error(arrangeResult.message, arrangeResult.error);

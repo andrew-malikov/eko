@@ -39,7 +39,10 @@ export class FsStorage implements Storage {
     }
   }
 
-  async saveLogs(containerId: string, logs: Stream): Promise<EmptyResult> {
+  async saveLogs(
+    containerId: string,
+    logs: NodeJS.ReadableStream
+  ): Promise<EmptyResult> {
     try {
       const containerDirectory = path.join(this.baseDirectory, containerId);
       await mkdir(containerDirectory, { recursive: true });

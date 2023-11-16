@@ -32,6 +32,14 @@ eko log arrange -s "fs::./my-logs" "id=31sasfw234"
 
 You can use `-s` option to config the storage layer, for now there is only one `FS`. The `FS` config is very simple so that the whole right part after `::` is treated as path where to store the logs.
 
+Additionally, you can set `-d` option to connect to a remote docker host like:
+
+```sh
+eko log arrange -d "remote::123.123.23.1:3241" "name=lorem"
+```
+
+The default option is access the local docker socket if for some reason yours isn't `/var/run/docker.sock` be sure to change it `-d "local::/my/run/docker.sock`.
+
 ### Storage layers
 
 Shows up a list of supported storage layers and additional metadata.
@@ -111,18 +119,6 @@ pnpm start log show <container-id>
 ```
 
 ## Questions
-
-Q: Is it possible to use this logging service inside a container (I don't want to run on host)?
-
-A: It is, you just need to prepare a dockerfile and mount host's docker.
-
----
-
-Q: Is it possible to access remote docker on other machine?
-
-A: Right now nope, but it is easy to implement, coz docker accepts -H option with an address and port to a docker deamon.
-
----
 
 Q: Does this logging service observers container while running or only one time at the startup?
 

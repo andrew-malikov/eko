@@ -1,10 +1,4 @@
-import { Readable } from "stream";
-
-import {
-  isDockerPresent,
-  listActiveContainers,
-  listenContainerLogs,
-} from "../../docker/docker-wrapper";
+import { DockerApi } from "../../docker/docker-wrapper";
 import { EmptyResult, Failure } from "../../result/result";
 import { GetStorage, Storage, StorageDefinition } from "../../storage/storage";
 
@@ -14,14 +8,15 @@ export type ArrangeContainersLogsRequest = {
 };
 
 type SubscribedContainer = {
-  logs: Readable;
+  logs: NodeJS.ReadableStream;
 };
 
 export async function arrangeContainersLogs(
   getStorage: GetStorage,
+  docker: DockerApi,
   { containerFilter, storageDefinition }: ArrangeContainersLogsRequest
 ): Promise<EmptyResult> {
-  const isDockerHealthy = await isDockerPresent();
+  const isDockerHealthy = await docker.isHealthy();
   if (!isDockerHealthy) {
     return EmptyResult.ofFailure(
       "Docker is not present at the moment. Please get another one."
@@ -45,9 +40,15 @@ export async function arrangeContainersLogs(
   process.on("SIGTERM", () => gracefullyShutdown(subscribedContainers));
   process.on("SIGINT", () => gracefullyShutdown(subscribedContainers));
 
-  subscribeToContainers(storage, containerFilter, subscribedContainers);
+  subscribeToContainers(storage, docker, containerFilter, subscribedContainers);
   setInterval(
-    () => subscribeToContainers(storage, containerFilter, subscribedContainers),
+    () =>
+      subscribeToContainers(
+        storage,
+        docker,
+        containerFilter,
+        subscribedContainers
+      ),
     5000
   );
 
@@ -56,10 +57,11 @@ export async function arrangeContainersLogs(
 
 async function subscribeToContainers(
   storage: Storage,
+  docker: DockerApi,
   containerFilter: string,
   subscribedContainers: Map<string, SubscribedContainer>
 ): Promise<EmptyResult> {
-  const containersResult = await listActiveContainers(containerFilter);
+  const containersResult = await docker.listActiveContainers(containerFilter);
   if (containersResult instanceof Failure) {
     return containersResult.asEmpty();
   }
@@ -86,11 +88,12 @@ async function subscribeToContainers(
     }
 
     console.log("Reading container", container.id, "logs");
-    const containerLogsResult = listenContainerLogs(
+    const containerLogsResult = await docker.listenContainerLogs(
       container.id,
       latestLogsTimestampResult.asOk()
     );
     if (containerLogsResult instanceof Failure) {
+      console.log(containerLogsResult.message, containerLogsResult.error);
       return containerLogsResult.asEmpty();
     }
     const containerLogs = containerLogsResult.asOk();
@@ -136,7 +139,7 @@ function gracefullyShutdown(
   subscribedContainers: Map<string, SubscribedContainer>
 ) {
   subscribedContainers.forEach((container, containerId) => {
-    container.logs.destroy();
+    container.logs.unpipe();
     console.log(
       "Container",
       containerId,

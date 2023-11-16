@@ -1,89 +1,106 @@
-import { exec } from "child_process";
+import Docker from "dockerode";
 
-import { Result } from "../result/result";
 import { Option } from "../result/option";
-import { Readable, Stream } from "stream";
+import { Result } from "../result/result";
+
+export interface DockerApi {
+  listActiveContainers(filter: string): Promise<Result<Container[]>>;
+  listenContainerLogs(
+    containerId: string,
+    timestamp: Option<number>
+  ): Promise<Result<NodeJS.ReadableStream>>;
+  isHealthy(): Promise<boolean>;
+}
+
+const DOCKER_CONNECTION_EXPRESSION = "([a-zA-Z]+)::(.+)";
+
+export function getDockerWrapper(connection: string): Result<DockerApi> {
+  const connectionParts = connection.match(DOCKER_CONNECTION_EXPRESSION);
+  if (!connectionParts) {
+    return Result.ofFailure(`Failed to parse docker connection ${connection}.`);
+  }
+
+  if (connectionParts.length !== 3) {
+    return Result.ofFailure(`Failed to parse docker connection ${connection}.`);
+  }
+
+  try {
+    switch (connectionParts[1]) {
+      case "local":
+        return Result.ofOk(
+          new DockerWrapper(new Docker({ socketPath: connectionParts[2] }))
+        );
+      case "remote":
+        return Result.ofOk(
+          new DockerWrapper(new Docker({ host: connectionParts[2] }))
+        );
+    }
+
+    return Result.ofFailure(
+      "Failed to identify docker connection type. It should be 'local::/path/var/docker.sock' or 'remote::183.12.13.1:2391'"
+    );
+  } catch (error) {
+    return Result.ofFailure(
+      `Failed to connect to docker deamon with connection ${connection}.`,
+      error
+    );
+  }
+}
+
+export class DockerWrapper implements DockerApi {
+  constructor(private readonly docker: Docker) {}
+
+  async listActiveContainers(filter: string): Promise<Result<Container[]>> {
+    try {
+      const containers = await this.docker.listContainers({ filter });
+      return Result.ofOk(
+        containers.map((container) => ({
+          id: container.Id,
+          name: container.Names.join(),
+        }))
+      );
+    } catch (error) {
+      return Result.ofFailure(
+        `Failed to gather containers from docker deamon with fitler ${filter}.`,
+        error
+      );
+    }
+  }
+
+  async listenContainerLogs(
+    containerId: string,
+    timestamp: Option<number>
+  ): Promise<Result<NodeJS.ReadableStream>> {
+    const options = timestamp ? { since: timestamp - 1 } : {};
+
+    try {
+      const logs = await this.docker.getContainer(containerId).logs({
+        follow: true,
+        timestamps: true,
+        stdout: true,
+        ...options,
+      });
+
+      return Result.ofOk(logs);
+    } catch (error) {
+      return Result.ofFailure(
+        `Failed to listen to logs from container ${containerId}.`,
+        error
+      );
+    }
+  }
+
+  async isHealthy(): Promise<boolean> {
+    try {
+      await this.docker.ping();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
 
 export type Container = {
   name: string;
   id: string;
 };
-
-// TODO: sanitize the label arg
-/**
- * @param filter a docker container ls filter
- */
-export function listActiveContainers(
-  filter: string
-): Promise<Result<Container[]>> {
-  return new Promise<Result<Container[]>>((resolve, _) => {
-    exec(
-      `docker container ls --format json -f ${filter}`,
-      (error, stdout, _) => {
-        if (error) {
-          return resolve(
-            Result.ofFailure(
-              `Failed to gather containers from docker deamon with fitler ${filter}.`,
-              error
-            )
-          );
-        }
-
-        const jsonRows = stdout.split("\n");
-        try {
-          const containers = jsonRows
-            .filter((container) => container.trim().length != 0)
-            .map((container) => JSON.parse(container))
-            .map((container: { [key: string]: unknown }) => {
-              const id = container["ID"];
-              if (typeof id != "string") {
-                throw new Error(`Invalid container id ${id}`);
-              }
-
-              const name = container["Names"];
-              if (typeof name != "string") {
-                throw new Error(`Invalid container name ${name}`);
-              }
-
-              return { id, name };
-            });
-
-          resolve(Result.ofOk(containers));
-        } catch (error) {
-          resolve(
-            Result.ofFailure(
-              `Failed to parse container list from docker deamon. ${stdout}`,
-              error
-            )
-          );
-        }
-      }
-    );
-  });
-}
-
-export function listenContainerLogs(
-  containerId: string,
-  timestamp: Option<number> = null
-): Result<Readable> {
-  let logCommand = `docker logs ${containerId} -t --follow`;
-  if (timestamp) {
-    logCommand += ` --since (${timestamp} - 1ms)`;
-  }
-
-  const containerLogs = exec(logCommand);
-
-  if (!containerLogs.stdout) {
-    return Result.ofFailure("Failed to acquire logs' stream.");
-  }
-
-  return Result.ofOk(containerLogs.stdout);
-}
-
-export async function isDockerPresent(): Promise<boolean> {
-  return new Promise<boolean>((resolve, _) => {
-    exec("docker", (error, _, __) => {
-      error ? resolve(false) : resolve(true);
-    });
-  });
-}

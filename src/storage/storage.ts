@@ -41,7 +41,10 @@ export class StorageMetadata {
 }
 
 export interface Storage {
-  saveLogs(containerId: string, logs: Stream): Promise<EmptyResult>;
+  saveLogs(
+    containerId: string,
+    logs: NodeJS.ReadableStream
+  ): Promise<EmptyResult>;
   readLogs(containerId: string): Promise<Result<Option<Stream>>>;
   getLatestLogTimestamp(containerId: string): Promise<Result<Option<number>>>;
   getLoggedContainers(): Promise<Result<string[]>>;
