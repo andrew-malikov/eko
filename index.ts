@@ -4,10 +4,11 @@ import {
   SUPPORTED_STORAGES_METADATA,
   getStorage,
 } from "./src/storage/supported-storages";
-import { arrangeContainersLogs } from "./src/commands/arrange";
+import { arrangeContainersLogs } from "./src/commands/logs/arrange";
 import { Failure } from "./src/result/result";
 import { parseStorageDefinition } from "./src/storage/storage";
-import { showContainerLogs } from "./src/commands/show";
+import { showContainerLogs } from "./src/commands/logs/show";
+import { listContainers } from "./src/commands/logs/list";
 
 const cli = new Command();
 
@@ -59,6 +60,35 @@ logsCli
 
     if (arrangeResult instanceof Failure) {
       console.error(arrangeResult.message, arrangeResult.error);
+      process.exit(1);
+    }
+  });
+
+logsCli
+  .command("list")
+  .description("list logged containers")
+  .option("-s, --s", "storage layer", "fs::./logs")
+  .action(async (options) => {
+    const storageConfigOption = options["s"];
+    if (!storageConfigOption) {
+      console.error(
+        "No -s option is specified or default one is overriden to nothing"
+      );
+      process.exit(1);
+    }
+
+    const storageConfigResult = parseStorageDefinition(storageConfigOption);
+    if (storageConfigResult instanceof Failure) {
+      console.error(storageConfigResult.message, storageConfigResult.error);
+      process.exit(1);
+    }
+
+    const listContainersResult = await listContainers(getStorage, {
+      storageDefinition: storageConfigResult.asOk(),
+    });
+
+    if (listContainersResult instanceof Failure) {
+      console.error(listContainersResult.message, listContainersResult.error);
       process.exit(1);
     }
   });

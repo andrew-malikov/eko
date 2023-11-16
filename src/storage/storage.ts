@@ -44,6 +44,7 @@ export interface Storage {
   saveLogs(containerId: string, logs: Stream): Promise<EmptyResult>;
   readLogs(containerId: string): Promise<Result<Option<Stream>>>;
   getLatestLogTimestamp(containerId: string): Promise<Result<Option<number>>>;
+  getLoggedContainers(): Promise<Result<string[]>>;
   isHealthy(): Promise<boolean>;
   getStorageMetadata(): StorageMetadata;
 }

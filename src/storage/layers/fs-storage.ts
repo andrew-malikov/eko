@@ -1,6 +1,6 @@
-import { Duplex, PassThrough, Stream, Writable } from "stream";
+import { Duplex, PassThrough, Stream } from "stream";
 import path from "path";
-import { access, mkdir } from "fs/promises";
+import { access, mkdir, readdir } from "fs/promises";
 
 import { Option } from "../../result/option";
 import { EmptyResult, Result } from "../../result/result";
@@ -8,27 +8,39 @@ import { Storage, StorageMetadata } from "../storage";
 import { createReadStream, createWriteStream } from "fs";
 
 export class FsStorage implements Storage {
-  constructor(private directory: string) {}
+  constructor(private baseDirectory: string) {}
 
   getStorageMetadata(): StorageMetadata {
     return {
       name: "fs",
-      connectionString: this.directory,
+      connectionString: this.baseDirectory,
     };
   }
 
   async isHealthy(): Promise<boolean> {
     try {
-      access(this.directory);
+      access(this.baseDirectory);
       return true;
     } catch {
       return false;
     }
   }
 
+  async getLoggedContainers(): Promise<Result<string[]>> {
+    try {
+      const containerDirs = await readdir(this.baseDirectory);
+      return Result.ofOk(containerDirs);
+    } catch (error) {
+      return Result.ofFailure(
+        "Failed to retrieve logged containers list.",
+        error
+      );
+    }
+  }
+
   async saveLogs(containerId: string, logs: Stream): Promise<EmptyResult> {
     try {
-      const containerDirectory = path.join(this.directory, containerId);
+      const containerDirectory = path.join(this.baseDirectory, containerId);
       await mkdir(containerDirectory, { recursive: true });
       const containerLogFile = path.join(containerDirectory, "log");
 
@@ -54,7 +66,11 @@ export class FsStorage implements Storage {
 
   async readLogs(containerId: string): Promise<Result<Option<Stream>>> {
     try {
-      const containerLogFile = path.join(this.directory, containerId, "log");
+      const containerLogFile = path.join(
+        this.baseDirectory,
+        containerId,
+        "log"
+      );
 
       try {
         await access(containerLogFile);
