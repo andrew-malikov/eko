@@ -4,8 +4,7 @@
   - [Overview](#overview)
     - [Arrange logs](#arrange-logs)
     - [Storage layers](#storage-layers)
-      - [Purge logs](#purge-logs)
-    - [Preview logs](#preview-logs)
+    - [Show up logs](#show-up-logs)
   - [Develop](#develop)
     - [PNPM](#pnpm)
   - [Run](#run)
@@ -21,28 +20,38 @@ Eko is an example service to arrange containers' logs. Nothing new and nothing f
 ### Arrange logs
 
 ```sh
-eko arrange "name=lorem"
+eko log arrange "name=lorem"
 ```
 
-The first and only one argument is the filter string like the one docker forces people to use. You can have a deeper look in the official docs.
+The first and only one argument is the filter string, like the one docker forces people to use. You can take a deeper look in the official docs.
 
-```
-eko arrange -s "fs::./my-logs" "id=31sasfw234"
+```sh
+eko log arrange -s "fs::./my-logs" "id=31sasfw234"
 ```
 
 You can use `-s` option to config the storage layer, for now there is only one `FS`. The `FS` config is very simple so that the whole left part after `::` is treated as path where to store the logs.
 
 ### Storage layers
 
-#### Purge logs
+Shows up a list of supported storage layers and additional metadata.
 
-### Preview logs
+```sh
+eko storage list
+```
+
+### Show up logs
+
+Pipes the container logs onto stdout infinitely.
+
+```sh
+eko log show <container-id>
+```
 
 ## Develop
 
 ### PNPM
 
-While it is quite possible to use npm to run this project I encourage to use pnpm, even if you don't have one.
+While it is quite possible to use npm to run this project, pnpm is strongly encouraged, even if you don't have one.
 
 ```sh
 npm install -g pnpm
@@ -62,13 +71,25 @@ Run that docker compose to have a set of container to arrange logs from.
 docker compose -p eko -f example/docker-compose.yaml up --force-recreate --always-recreate-deps --build
 ```
 
-and then run eko
+and then run eko:
 
 ```sh
-pnpm start arrange "name=lorem"
+pnpm start log arrange "name=lorem"
 ```
 
 See the logs in the `./logs` folder.
+
+Additionally, you can show up the logs via eko. Firstly, you need to get the container id you want to show up via
+
+```sh
+pnpm start log list
+```
+
+and finally, bring the logs:
+
+```sh
+pnpm start log show <container-id>
+```
 
 ### Logging Container
 

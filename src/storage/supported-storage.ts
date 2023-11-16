@@ -2,7 +2,7 @@ import { Result } from "../result/result";
 import { getFsStorage } from "./layers/fs-storage";
 import { Storage, StorageDefinition } from "./storage";
 
-export const SUPPORTED_STORAGES_METADATA = [
+export const SUPPORTED_STORAGE_METADATA = [
   {
     name: "fs",
     description: "File System",
@@ -11,7 +11,7 @@ export const SUPPORTED_STORAGES_METADATA = [
   },
 ];
 
-const SUPPORTED_STORAGES: {
+const SUPPORTED_STORAGE: {
   [key: string]: (connectionString: string) => Promise<Result<Storage>>;
 } = {
   fs: getFsStorage,
@@ -20,7 +20,7 @@ const SUPPORTED_STORAGES: {
 export async function getStorage(
   definition: StorageDefinition
 ): Promise<Result<Storage>> {
-  const storageFactory = SUPPORTED_STORAGES[definition.name];
+  const storageFactory = SUPPORTED_STORAGE[definition.name];
   if (!storageFactory) {
     return Result.ofFailure(
       `Failed to find supported storage by name ${definition.name}.`

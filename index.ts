@@ -1,14 +1,14 @@
 import { Command } from "commander";
 
 import {
-  SUPPORTED_STORAGES_METADATA,
+  SUPPORTED_STORAGE_METADATA as SUPPORTED_STORAGE_METADATA,
   getStorage,
-} from "./src/storage/supported-storages";
-import { arrangeContainersLogs } from "./src/commands/logs/arrange";
+} from "./src/storage/supported-storage";
+import { arrangeContainersLogs } from "./src/commands/log/arrange";
 import { Failure } from "./src/result/result";
 import { parseStorageDefinition } from "./src/storage/storage";
-import { showContainerLogs } from "./src/commands/logs/show";
-import { listContainers } from "./src/commands/logs/list";
+import { showContainerLogs } from "./src/commands/log/show";
+import { listContainers } from "./src/commands/log/list";
 
 const cli = new Command();
 
@@ -23,15 +23,15 @@ storageCli
   .command("list")
   .description("lists all storage layers")
   .action(() => {
-    console.table(SUPPORTED_STORAGES_METADATA);
+    console.table(SUPPORTED_STORAGE_METADATA);
   });
 
-const logsCli = cli.command("logs").description("manages logs");
+const logsCli = cli.command("log").description("manages logs");
 
 logsCli
   .command("arrange")
   .description(
-    "listens to a set of containers by tags and stores logs into a storage"
+    "listens to a filtered set of containers and stores logs into a storage"
   )
   .option("-s, --s", "storage layer", "fs::./logs")
   .argument(
