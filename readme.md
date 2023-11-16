@@ -64,11 +64,25 @@ npm install -g pnpm
 
 ## Run
 
+Build the project:
+
+```sh
+pnpm build 
 ```
+
+and then run:
+
+```sh
 pnpm start
 ```
 
 ## Example
+
+Build eko:
+
+```sh
+pnpm build
+```
 
 Run that docker compose to have a set of container to arrange logs from:
 

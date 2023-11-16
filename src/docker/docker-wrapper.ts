@@ -68,7 +68,7 @@ export function listenContainerLogs(
 ): Result<Readable> {
   let logCommand = `docker logs ${containerId} -t --follow`;
   if (timestamp) {
-    logCommand += ` --since ${timestamp}`;
+    logCommand += ` --since (${timestamp} - 1ms)`;
   }
 
   const containerLogs = exec(logCommand);
