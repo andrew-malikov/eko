@@ -24,7 +24,7 @@ Eko is an example service to arrange containers' logs. Nothing new and nothing f
 eko log arrange "name=lorem"
 ```
 
-The first and only one argument is the filter string, like the one docker forces people to use. You can take a deeper look in the official docs.
+The first and only one argument is the filter string, like the one docker forces people to use. [You can take a deeper look in the official docs](https://docs.docker.com/engine/reference/commandline/ps/#filter).
 
 ```sh
 eko log arrange -s "fs::./my-logs" "id=31sasfw234"
