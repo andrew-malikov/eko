@@ -10,7 +10,7 @@
     - [Docker](#docker)
   - [Run](#run)
   - [Example](#example)
-    - [Logging Container](#logging-container)
+  - [Questions](#questions)
 
 Eko is an example service to arrange containers' logs. Nothing new and nothing fancy, go ahead.
 
@@ -96,6 +96,26 @@ and finally, bring the logs:
 pnpm start log show <container-id>
 ```
 
-### Logging Container
+## Questions
 
-> It is possible but out of scope
+Q: Is it possible to use this logging service inside a container (I don't want to run on host)?
+
+A: It is, you just need to prepare a dockerfile and mount host's docker.
+
+---
+
+Q: Is it possible to access remote docker on other machine?
+
+A: Right now nope, but it is easy to implement, coz docker accepts -H option with an address and port to a docker deamon.
+
+---
+
+Q: Does this logging service observers container while running or only one time at the startup?
+
+A: It does observer each X amount of seconds. But it's not configurable now.
+
+---
+
+Q: Can I ran multiple such logging services that listen the same containers with the same storages?
+
+A: Nope, right now it would probably fail. At least with the FS storage, some of the services would fail to write to the same file.
