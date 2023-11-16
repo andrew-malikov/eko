@@ -30,7 +30,7 @@ The first and only one argument is the filter string, like the one docker forces
 eko log arrange -s "fs::./my-logs" "id=31sasfw234"
 ```
 
-You can use `-s` option to config the storage layer, for now there is only one `FS`. The `FS` config is very simple so that the whole left part after `::` is treated as path where to store the logs.
+You can use `-s` option to config the storage layer, for now there is only one `FS`. The `FS` config is very simple so that the whole right part after `::` is treated as path where to store the logs.
 
 ### Storage layers
 
