@@ -70,6 +70,7 @@ async function subscribeToContainers(
   );
 
   if (newContainers.length === 0) {
+    console.log("Found no new containers by filter");
     return EmptyResult.ofOk();
   }
 

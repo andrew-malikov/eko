@@ -33,7 +33,7 @@ logsCli
   .description(
     "listens to a filtered set of containers and stores logs into a storage"
   )
-  .option("-s, --s", "storage layer", "fs::./logs")
+  .option("-s, --s <storage>", "storage layer", "fs::./logs")
   .argument(
     "<filter>",
     "container filter like in `docker container ls -f label=xyz`"
@@ -67,7 +67,7 @@ logsCli
 logsCli
   .command("list")
   .description("list logged containers")
-  .option("-s, --s", "storage layer", "fs::./logs")
+  .option("-s, --s <storage>", "storage layer", "fs::./logs")
   .action(async (options) => {
     const storageConfigOption = options["s"];
     if (!storageConfigOption) {
@@ -96,7 +96,7 @@ logsCli
 logsCli
   .command("show")
   .description("prints container logs into stdout")
-  .option("-s, --s", "storage layer", "fs::./logs")
+  .option("-s, --s <storage>", "storage layer", "fs::./logs")
   .argument("<containerId>", "container id")
   .action(async (containerId, options) => {
     const storageConfigOption = options["s"];
