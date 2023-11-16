@@ -48,15 +48,19 @@ export class FsStorage implements Storage {
       const writeStream = createWriteStream(containerLogFile, { flags: "a" });
       logs.pipe(writeStream);
 
-      return new Promise((resolve, reject) => {
-        logs.on("close", () => {
-          resolve(EmptyResult.ofOk);
-        });
-
-        logs.on("finish", () => {
-          resolve(EmptyResult.ofOk);
-        });
+      logs.on("error", () => {
+        writeStream.destroy();
       });
+
+      logs.on("close", () => {
+        writeStream.destroy();
+      });
+
+      logs.on("finish", () => {
+        writeStream.destroy();
+      });
+
+      return EmptyResult.ofOk();
     } catch (error) {
       return EmptyResult.ofFailure(
         "Failed to save logs into a container log file.",

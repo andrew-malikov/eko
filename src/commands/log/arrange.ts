@@ -1,13 +1,19 @@
+import { Stream } from "stream";
+
 import {
   listActiveContainers,
   listenContainerLogs,
 } from "../../docker/docker-wrapper";
 import { EmptyResult, Failure } from "../../result/result";
-import { GetStorage, StorageDefinition } from "../../storage/storage";
+import { GetStorage, Storage, StorageDefinition } from "../../storage/storage";
 
 export type ArrangeContainersLogsRequest = {
   containerFilter: string;
   storageDefinition: StorageDefinition;
+};
+
+type SubscribedContainer = {
+  logs: Stream;
 };
 
 export async function arrangeContainersLogs(
@@ -27,22 +33,42 @@ export async function arrangeContainersLogs(
     );
   }
 
+  const subscribedContainer: Map<string, SubscribedContainer> = new Map();
+  subscribeToContainers(storage, containerFilter, subscribedContainer);
+  setInterval(
+    () => subscribeToContainers(storage, containerFilter, subscribedContainer),
+    5000
+  );
+
+  return EmptyResult.ofOk();
+}
+
+async function subscribeToContainers(
+  storage: Storage,
+  containerFilter: string,
+  subscribedContainers: Map<string, SubscribedContainer>
+): Promise<EmptyResult> {
   const containersResult = await listActiveContainers(containerFilter);
   if (containersResult instanceof Failure) {
     return containersResult.asEmpty();
   }
   const containers = containersResult.asOk();
 
-  console.log("Found containers by filter", containerFilter);
-  console.table(containers);
+  const newContainers = containers.filter(
+    (container) => !subscribedContainers.has(container.id)
+  );
 
-  if (containers.length === 0) {
+  if (newContainers.length === 0) {
     return EmptyResult.ofOk();
   }
 
-  for (const container of containers) {
-    const latestLogsTimestampResult =
-      await storage.getLatestLogTimestamp(container.id);
+  console.log("Found new containers by filter", newContainers);
+  console.table(newContainers);
+
+  for (const container of newContainers) {
+    const latestLogsTimestampResult = await storage.getLatestLogTimestamp(
+      container.id
+    );
     if (latestLogsTimestampResult instanceof Failure) {
       return latestLogsTimestampResult.asEmpty();
     }
@@ -65,7 +91,29 @@ export async function arrangeContainersLogs(
           saveResult.message,
           saveResult.error
         );
+      } else {
+        subscribedContainers.set(container.id, { logs: containerLogs });
       }
+    });
+
+    containerLogs.on("finish", () => {
+      subscribedContainers.delete(container.id);
+      console.log(
+        "Unsubscribed from container",
+        container.id,
+        ".",
+        "The stream has been finished."
+      );
+    });
+
+    containerLogs.on("error", (error) => {
+      subscribedContainers.delete(container.id);
+      console.log(
+        "Unsubscribed from container",
+        container.id,
+        "because of",
+        error
+      );
     });
   }
 

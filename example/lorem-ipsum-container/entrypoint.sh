@@ -4,6 +4,10 @@ lorem_id=$(
     echo
 )
 while true; do
-    echo "Lorem Ipsum $lorem_id"
-    sleep 3
+    log_content=$(
+        tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+        echo
+    )
+    echo "$lorem_id Lorem Ipsum $log_content"
+    sleep 1
 done
