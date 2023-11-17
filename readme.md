@@ -7,6 +7,7 @@
     - [Show up logs](#show-up-logs)
   - [Develop](#develop)
     - [Docker](#docker)
+    - [Install deps](#install-deps)
   - [Run](#run)
   - [Binary](#binary)
   - [Example](#example)
@@ -59,6 +60,12 @@ eko log show <container-id>
 ### Docker
 
 > You need to have docker one way or the other, either on local or remotely on a machine with open port to access docker socket.
+
+### Install deps
+
+```sh
+npm i
+```
 
 ## Run
 
