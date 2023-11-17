@@ -52,7 +52,18 @@ export class DockerWrapper implements DockerApi {
 
   async listActiveContainers(filter: string): Promise<Result<Container[]>> {
     try {
-      const containers = await this.docker.listContainers({ filter });
+      const filters = filter
+        .split(" ")
+        .map((pair) => pair.split("="))
+        .filter((pair) => pair.length == 2)
+        .reduce((acc, pair) => {
+          (acc as any)[pair[0]] = [pair[1]];
+          return acc;
+        }, {});
+
+      const containers = await this.docker.listContainers({
+        filters,
+      });
       return Result.ofOk(
         containers.map((container) => ({
           id: container.Id,

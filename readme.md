@@ -9,7 +9,6 @@
     - [Docker](#docker)
     - [Install deps](#install-deps)
   - [Run](#run)
-  - [Binary](#binary)
   - [Example](#example)
   - [Questions](#questions)
 
@@ -29,7 +28,7 @@ The first and only one argument is the filter string, like the one docker forces
 eko log arrange -s "fs::./my-logs" "id=31sasfw234"
 ```
 
-You can use `-s` option to config the storage layer, for now there is only one `FS`. The `FS` config is very simple so that the whole right part after `::` is treated as path where to store the logs.
+You can use `-s` option to config the storage layer, for now there are only two `fs` and `mongo`. The `fs` config is very simple so that the whole right part after `::` is treated as path where to store the logs. For `mongo` the right part is the connection string.
 
 Additionally, you can set `-d` option to connect to a remote docker host like:
 
@@ -37,7 +36,7 @@ Additionally, you can set `-d` option to connect to a remote docker host like:
 eko log arrange -d "remote::123.123.23.1:3241" "name=lorem"
 ```
 
-The default option is access the local docker socket if for some reason yours isn't `/var/run/docker.sock` be sure to change it `-d "local::/my/run/docker.sock`.
+The default option is to access the local docker socket if for some reason yours isn't `/var/run/docker.sock` be sure to change it `-d "local::/my/run/docker.sock`.
 
 ### Storage layers
 
@@ -69,21 +68,7 @@ npm i
 
 ## Run
 
-Build the project:
-
-```sh
-npm run build 
-```
-
-and then run:
-
-```sh
-npm run start
-```
-
-## Binary
-
-You can build a binary:
+Build the binary after installing deps:
 
 ```sh
 npm run binary
@@ -93,12 +78,14 @@ You can find the artifact `./binary/eko`.
 
 ## Example
 
-> You can either use npm to build and run eko or have binary instead.
+> Other thing to consider is to use docker-compose with mongodb `docker compose -p mongo -f example/docker-compose.mongo.yaml up`
+> You will need to provide `-s "mongo::mongodb://superadmin:neverguessit@localhost:27017/eko?authSource=admin"` when you call `./binary/eko log arrange` and other commands.
+> By default eko is going to use `fs` storage with logs location under `./logs`.
 
-Build eko:
+Build eko binary:
 
 ```sh
-npm run build
+npm i && npm run binary
 ```
 
 Run that docker compose to have a set of container to arrange logs from:
@@ -110,7 +97,7 @@ docker compose -p eko -f example/docker-compose.yaml up --force-recreate --alway
 and then run eko:
 
 ```sh
-npm run start log arrange "name=lorem"
+./binary/eko log arrange "name=lorem"
 ```
 
 See the logs in the `./logs` folder.
@@ -118,13 +105,13 @@ See the logs in the `./logs` folder.
 Additionally, you can show up the logs via eko. Firstly, you need to get the container id you want to show up via
 
 ```sh
-npm run start log list
+./binary/eko log list
 ```
 
 and finally, bring the logs:
 
 ```sh
-npm run start log show <container-id>
+./binary/eko log show <container-id>
 ```
 
 ## Questions
@@ -138,3 +125,9 @@ A: It does observe each X amount of seconds. But it's not configurable now.
 Q: Can I run multiple such logging services that listen the same containers with the same storage?
 
 A: Nope, right now it would probably fail. At least with the FS storage, some of the services would fail to write to the same file.
+
+---
+
+Q: Does eko arrange logs with the last saved position?
+
+A: Yep, it does.

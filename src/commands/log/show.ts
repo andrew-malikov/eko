@@ -36,5 +36,7 @@ export async function showContainerLogs(
 
   logs.pipe(process.stdout);
 
+  await storage.destory();
+
   return EmptyResult.ofOk();
 }

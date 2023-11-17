@@ -122,6 +122,10 @@ export class FsStorage implements Storage {
       });
     });
   }
+
+  destory(): Promise<void> {
+    return new Promise((resolve) => resolve());
+  }
 }
 
 function infinitelyListenFile(filePath: string): Result<Duplex> {

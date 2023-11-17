@@ -50,6 +50,7 @@ export interface Storage {
   getLoggedContainers(): Promise<Result<string[]>>;
   isHealthy(): Promise<boolean>;
   getStorageMetadata(): StorageMetadata;
+  destory(): Promise<void>;
 }
 
 export type GetStorage = (

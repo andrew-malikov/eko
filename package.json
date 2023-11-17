@@ -5,15 +5,16 @@
   "main": "index.ts",
   "scripts": {
     "clean": "tsc --build --clean",
-    "build": "npm clean && tsc --build",
-    "dev": "npm build && node ./build",
+    "build": "npm run clean && tsc --build",
+    "dev": "npm run build && node ./build",
     "start": "node ./build",
     "bundle": "esbuild index.ts --bundle --platform=node --outfile=./bundle/index.js",
     "binary": "./scripts/generate-binary.bash"
   },
   "dependencies": {
     "commander": "^11.1.0",
-    "dockerode": "^4.0.0"
+    "dockerode": "^4.0.0",
+    "mongodb": "^6.3.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",

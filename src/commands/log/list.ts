@@ -29,5 +29,7 @@ export async function listContainers(
 
   console.log("Found containers' ids", containersResult.asOk());
 
+  await storage.destory();
+
   return EmptyResult.ofOk();
 }
