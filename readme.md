@@ -16,6 +16,8 @@ Eko is an example service to arrange containers' logs. Nothing new and nothing f
 
 ## Overview
 
+> DEPRECATED SINCE MOVING AWAY FROM CLI TO SERVER
+
 ### Arrange logs
 
 ```sh
@@ -116,7 +118,7 @@ and finally, bring the logs:
 
 ## Questions
 
-Q: Does this logging service observers container while running or only one time at the startup?
+Q: Does this logging service observe container while running or only one time at the startup?
 
 A: It does observe each X amount of seconds. But it's not configurable now.
 
