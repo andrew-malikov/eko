@@ -14,7 +14,7 @@ export interface DockerApi {
 
 const DOCKER_CONNECTION_EXPRESSION = "([a-zA-Z]+)::(.+)";
 
-export function getDockerWrapper(connection: string): Result<DockerApi> {
+export function getDockerApi(connection: string): Result<DockerApi> {
   const connectionParts = connection.match(DOCKER_CONNECTION_EXPRESSION);
   if (!connectionParts) {
     return Result.ofFailure(`Failed to parse docker connection ${connection}.`);

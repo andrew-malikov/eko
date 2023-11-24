@@ -1,0 +1,10 @@
+node_modules
+.vscode
+.config
+.eslintrc.json
+.mocharc.json
+.prettierrc
+readme.md
+bundle
+binary
+compiled

@@ -1,0 +1,10 @@
+services:
+  eko:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    image: eko/server:0.0.0
+    environment:
+      EKO_STORAGE: "${EKO_STORAGE}"
+    ports:
+      - 8080:3000

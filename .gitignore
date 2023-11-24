@@ -2,8 +2,7 @@
 
 # Logs
 
-/logs
-/my-logs
+logs
 _.log
 npm-debug.log_
 yarn-debug.log*
@@ -173,10 +172,7 @@ dist
 .idea
 
 # Compiled JS
-build
+compiled
 
-# Bundled JS
-/bundle
-
-# Binary eko
-/binary
+# Generated binaries
+binary

@@ -40,6 +40,8 @@ export class StorageMetadata {
   }
 }
 
+// TODO: needs to support locking writing logs to a container
+//       to enable usage in a distributed scenario
 export interface Storage {
   saveLogs(
     containerId: string,
@@ -50,6 +52,7 @@ export interface Storage {
   getLoggedContainers(): Promise<Result<string[]>>;
   isHealthy(): Promise<boolean>;
   getStorageMetadata(): StorageMetadata;
+  // TODO: like tryLock(containerId: string): Promise<EmptyResult>;
   destory(): Promise<void>;
 }
 
