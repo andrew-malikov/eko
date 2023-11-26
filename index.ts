@@ -27,12 +27,9 @@ async function serve(storageDefinition: string): Promise<Result<Express>> {
   if (storageResult instanceof Failure) {
     return storageResult.map();
   }
+  const storage = storageResult.asOk();
 
-  const logsProcessor = new InMemoryLogsProcessor(
-    5000,
-    storageResult.asOk(),
-    getDockerApi
-  );
+  const logsProcessor = new InMemoryLogsProcessor(5000, storage, getDockerApi);
 
   const app = express();
 
@@ -41,7 +38,7 @@ async function serve(storageDefinition: string): Promise<Result<Express>> {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  app.use("/api/v1", getLogsEndpoints(logsProcessor));
+  app.use("/api/v1", getLogsEndpoints(logsProcessor, storage));
 
   app.use((_, __, next) => {
     next(createError(404));

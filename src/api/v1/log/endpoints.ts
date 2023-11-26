@@ -3,8 +3,9 @@ import zod from "zod";
 
 import { AuthenticateUser } from "../../../http/authenticate-user";
 import { ValidateBodySchema } from "../../../http/validate-body-schema";
-import { EmptyFailure } from "../../../result/result";
+import { EmptyFailure, Failure } from "../../../result/result";
 import { LogsProcessor } from "../../../logs-processor/logs-processor";
+import { Storage } from "../../../storage/storage";
 
 export type ArrangeLogsRequestBody = {
   dockerAddress: string;
@@ -26,14 +27,17 @@ const ARRANGE_LOGS_REQUEST_SCHEMA = zod.object({
   }),
 });
 
-export function getLogsEndpoints(logsProcessor: LogsProcessor) {
+export function getLogsEndpoints(
+  logsProcessor: LogsProcessor,
+  storage: Storage
+) {
   const endpoints = Router();
 
   endpoints.use(AuthenticateUser("token"));
 
   endpoints
-    .route("/logs/arrange")
     .post(
+      "/logs/arrange",
       ValidateBodySchema(ARRANGE_LOGS_REQUEST_SCHEMA),
       async (request: PostArrangeLogsRequest, response) => {
         const subscribeResult = await logsProcessor.subscribe(request.body);
@@ -45,7 +49,34 @@ export function getLogsEndpoints(logsProcessor: LogsProcessor) {
 
         response.sendStatus(201);
       }
-    );
+    )
+    .get("/logs/{containerId}", async (request: Request, response) => {
+      const containerId = request.params["containerId"];
+      if (!containerId) {
+        response.status(400).json({
+          error: "Failed to retrieve containerId from the route params.",
+        });
+        return;
+      }
+
+      const containerLogsResult = await storage.readLogs(containerId);
+      if (containerLogsResult instanceof Failure) {
+        console.error(containerLogsResult.error, containerLogsResult.message);
+        response.status(500).json({ error: containerLogsResult.message });
+        return;
+      }
+
+      const containerLogs = containerLogsResult.asOk();
+      if (!containerLogs) {
+        response.status(404);
+        return;
+      }
+
+      response.setHeader("Content-Type", "text/html; charset=utf-8");
+      response.setHeader("Transfer-Encoding", "chunked");
+
+      containerLogs.pipe(response);
+    });
 
   return endpoints;
 }
