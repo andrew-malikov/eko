@@ -6,5 +6,7 @@ services:
     image: eko/server:0.0.0
     environment:
       EKO_STORAGE: "${EKO_STORAGE}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:3000

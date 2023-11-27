@@ -2,13 +2,15 @@
 
 - [Eko](#eko)
   - [Overview](#overview)
-    - [Arrange logs](#arrange-logs)
     - [Storage layers](#storage-layers)
-    - [Show up logs](#show-up-logs)
+    - [Docker socket format](#docker-socket-format)
+    - [Arrange logs](#arrange-logs)
   - [Develop](#develop)
     - [Docker](#docker)
     - [Install deps](#install-deps)
-  - [Run](#run)
+    - [Environment variables](#environment-variables)
+    - [Run with docker compose](#run-with-docker-compose)
+  - [Bundle and run yourself](#bundle-and-run-yourself)
   - [Example](#example)
   - [Questions](#questions)
 
@@ -16,45 +18,24 @@ Eko is an example service to arrange containers' logs. Nothing new and nothing f
 
 ## Overview
 
-> DEPRECATED SINCE MOVING AWAY FROM CLI TO SERVER
+The main focus is made on a few things
 
-### Arrange logs
-
-```sh
-eko log arrange "name=lorem"
-```
-
-The first and only one argument is the filter string, like the one docker forces people to use. [You can take a deeper look in the official docs](https://docs.docker.com/engine/reference/commandline/ps/#filter).
-
-```sh
-eko log arrange -s "fs::./my-logs" "id=31sasfw234"
-```
-
-You can use `-s` option to config the storage layer, for now there are only two `fs` and `mongo`. The `fs` config is very simple so that the whole right part after `::` is treated as path where to store the logs. For `mongo` the right part is the connection string.
-
-Additionally, you can set `-d` option to connect to a remote docker host like:
-
-```sh
-eko log arrange -d "remote::123.123.23.1:3241" "name=lorem"
-```
-
-The default option is to access the local docker socket if for some reason yours isn't `/var/run/docker.sock` be sure to change it `-d "local::/my/run/docker.sock`.
+- arrange logs from a particular docker socket
+- get a stream of those
 
 ### Storage layers
 
-Shows up a list of supported storage layers and additional metadata.
+Eko supports multiple storage layers via ENV in format of "<storage-name>::<connection-string>".
 
-```sh
-eko storage list
-```
+For now, there are only two `fs` and `mongo`. The `fs` config is very simple so that the whole right part after `::` is treated as path where to store the logs. For `mongo` the right part is the connection string.
 
-### Show up logs
+### Docker socket format
 
-Pipes the container logs onto stdout infinitely.
+When eko subscribes to a docker socket it expects it to be like "remote::<address>" or "local::<path>".
 
-```sh
-eko log show <container-id>
-```
+### Arrange logs
+
+The API to arrange logs from a docker socket support a mandatory filter, the one docker uses under the hood. [You can take a deeper look in the official docs](https://docs.docker.com/engine/reference/commandline/ps/#filter).
 
 ## Develop
 
@@ -68,17 +49,43 @@ eko log show <container-id>
 npm i
 ```
 
-## Run
+### Environment variables
 
-Build the binary after installing deps:
+Copy the example env file and adjust vars you need:
 
 ```sh
-npm run binary
+cp .config/.env.example .env
 ```
 
-You can find the artifact `./binary/eko`.
+### Run with docker compose
+
+```sh
+docker compose --env-file .env -f build/docker-compose.yml -p ekoserver up --build
+```
+
+## Bundle and run yourself
+
+Bundle the server:
+
+```sh
+npm run bundle
+```
+
+Append the variables to current shell:
+
+```sh
+export $(cat .env | xargs)
+```
+
+Run the bundled server with node:
+
+```sh
+node bundle
+```
 
 ## Example
+
+> Outdated since replacing CLI with a server solution
 
 > Other thing to consider is to use docker-compose with mongodb `docker compose -p mongo -f example/docker-compose.mongo.yaml up`
 > You will need to provide `-s "mongo::mongodb://superadmin:neverguessit@localhost:27017/eko?authSource=admin"` when you call `./binary/eko log arrange` and other commands.

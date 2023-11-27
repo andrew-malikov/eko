@@ -174,5 +174,5 @@ dist
 # Compiled JS
 compiled
 
-# Generated binaries
-binary
+# Bundled js with deps
+bundle
