@@ -50,6 +50,21 @@ export function getLogsEndpoints(
         response.sendStatus(201);
       }
     )
+    .get("/logs/containers", async (_, response) => {
+      const arrangedContainersResult = await storage.getLoggedContainers();
+      if (arrangedContainersResult instanceof Failure) {
+        console.error(
+          arrangedContainersResult.error,
+          arrangedContainersResult.message
+        );
+        response.status(500).json({
+          error: arrangedContainersResult.message,
+        });
+        return;
+      }
+
+      response.json(arrangedContainersResult.asOk());
+    })
     .get("/logs/{containerId}", async (request: Request, response) => {
       const containerId = request.params["containerId"];
       if (!containerId) {
