@@ -10,7 +10,7 @@
     - [Install deps](#install-deps)
     - [Environment variables](#environment-variables)
     - [Run with docker compose](#run-with-docker-compose)
-  - [Bundle and run yourself](#bundle-and-run-yourself)
+    - [Bundle and run yourself](#bundle-and-run-yourself)
   - [Example](#example)
   - [Questions](#questions)
 
@@ -25,13 +25,13 @@ The main focus is made on a few things
 
 ### Storage layers
 
-Eko supports multiple storage layers via ENV in format of "<storage-name>::<connection-string>".
+Eko supports multiple storage layers via ENV in format of "\<storage-name\>::\<connection-string\>".
 
 For now, there are only two `fs` and `mongo`. The `fs` config is very simple so that the whole right part after `::` is treated as path where to store the logs. For `mongo` the right part is the connection string.
 
 ### Docker socket format
 
-When eko subscribes to a docker socket it expects it to be like "remote::<address>" or "local::<path>".
+When eko subscribes to a docker socket it expects it to be like "remote::\<address\>" or "local::\<path\>".
 
 ### Arrange logs
 
@@ -63,7 +63,7 @@ cp .config/.env.example .env
 docker compose --env-file .env -f build/docker-compose.yml -p ekoserver up --build
 ```
 
-## Bundle and run yourself
+### Bundle and run yourself
 
 Bundle the server:
 
